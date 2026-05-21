@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockLysis - Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <style>
+    .stock-expanded {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .stock-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+    }
+    .stock-graph-panel {
+      border-top: 1px solid var(--border);
+      padding: 16px 20px 20px;
+      display: none;
+      background: var(--surface2);
+    }
+    .stock-graph-panel.open { display: block; }
+    .toggle-chart-btn {
+      padding: 6px 12px;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      transition: 0.2s;
+    }
+    .toggle-chart-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .toggle-chart-btn.chart-open { border-color: var(--primary); color: var(--primary); background: var(--surface); }
+  </style>
+  <link rel="stylesheet" href="common.css"/>
+</head>
+<body>
+
+<div class="navbar">
+  <a href="index.html" class="logo">📊 StockLysis</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html" class="active">Dashboard</a>
+    <a href="compare.html">Compare</a>
+    <a href="news.html">News</a>
+    <a href="watchlist.html">Watchlist</a>
+    <a href="beginner.html">Beginner Tips</a>
+    <a href="ask.html">Ask a Question</a>
+    <a href="about.html">About</a>
+  </nav>
+      <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <div id="authButtons"></div>
+  </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- Theme Panel -->
+  <div class="theme-panel">
+    <span style="font-weight:700;font-size:14px;">🎨 Theme:</span>
+    <button class="theme-btn" id="themeLight" onclick="setTheme('light')">☀️ Light</button>
+    <button class="theme-btn" id="themeDark"  onclick="setTheme('dark')">🌙 Dark</button>
+  </div>
+
+  <h2 class="page-title">📊 Market Overview</h2>
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="summary-card"><h3>Watchlist</h3><p id="wlCount">0</p></div>
+    <div class="summary-card"><h3>Gainers Today</h3><p class="positive" id="gainersCount">0</p></div>
+    <div class="summary-card"><h3>Losers Today</h3><p class="negative" id="losersCount">0</p></div>
+    <div class="summary-card"><h3>Total Stocks</h3><p id="totalCount">5</p></div>
+  </div>
+
+  <!-- Stock cards -->
+  <div id="stockCards"></div>
+
+  <!-- Watchlist -->
+  <h2 class="section-title">⭐ Your Watchlist</h2>
+  <div id="watchlistSection"></div>
+
+</div>
+
+<footer>This website is for educational purposes only.</footer>
+
+<script>
+// =========================================================
+// THEME
+// =========================================================
+const chartInstances = {};
+const openPanels = {};
+
+function applyTheme(t) {
+  document.body.classList.toggle('dark', t === 'dark');
+  document.getElementById('themeLight').classList.toggle('active-theme', t !== 'dark');
+  document.getElementById('themeDark').classList.toggle('active-theme', t === 'dark');
+  Object.values(chartInstances).forEach(c => updateChartTheme(c));
+}
+function setTheme(t) { localStorage.setItem('theme', t); applyTheme(t); }
+function toggleTheme() { setTheme(document.body.classList.contains('dark') ? 'light' : 'dark'); }
+applyTheme(localStorage.getItem('theme') || 'light');
+
+// =========================================================
+// STOCK DATA  (7-day history per stock)
+// =========================================================
+const stocks = [
+  { id:'TCS',   name:'TCS',      price:3900, change:+1.2, sector:'IT',
+    history:[3720,3760,3800,3830,3860,3885,3900], color:'#0ea5e9' },
+  { id:'INFY',  name:'INFY',     price:1450, change:-0.8, sector:'IT',
+    history:[1510,1495,1482,1472,1465,1457,1450], color:'#f59e0b' },
+  { id:'RELI',  name:'RELIANCE', price:2800, change:0.0,  sector:'Energy',
+    history:[2780,2810,2790,2805,2800,2810,2800], color:'#10b981' },
+  { id:'HDFC',  name:'HDFC',     price:2500, change:+0.5, sector:'Banking',
+    history:[2460,2468,2475,2482,2490,2496,2500], color:'#8b5cf6' },
+  { id:'ICICI', name:'ICICI',    price:900,  change:-1.0, sector:'Banking',
+    history:[930,922,915,910,906,902,900],         color:'#ef4444' },
+];
+const LABELS = ['6d ago','5d ago','4d ago','3d ago','2d ago','Yesterday','Today'];
+
+let watchlist = JSON.parse(localStorage.getItem('watchlist2')) || [];
+function saveWL() { localStorage.setItem('watchlist2', JSON.stringify(watchlist)); }
+
+// =========================================================
+// RENDER CARDS  (build DOM once, then only update buttons)
+// =========================================================
+function buildCards() {
+  const container = document.getElementById('stockCards');
+  stocks.forEach(s => {
+    const wrap = document.createElement('div');
+    wrap.className = 'stock-expanded';
+    wrap.id = 'wrap-' + s.id;
+    wrap.innerHTML = `
+      <div class="stock-header">
+        <div class="stock-info">
+          <strong style="font-size:17px;">${s.name}</strong>
+          <div class="stock-price" style="margin-top:3px;">
+            ₹${s.price.toLocaleString()}
+            <span class="${s.change>0?'positive':s.change<0?'negative':''}">${s.change>0?'+':''}${s.change}%</span>
+            <span style="font-size:11px;color:var(--text-muted);margin-left:6px;">${s.sector}</span>
+          </div>
+        </div>
+        <div class="stock-actions">
+          <button class="toggle-chart-btn" id="chartbtn-${s.id}" onclick="togglePanel('${s.id}')">📈 Chart</button>
+          <button class="watch-btn"  id="add-${s.id}"  onclick="addToWL('${s.id}')">+ Watchlist</button>
+          <button class="remove-btn" id="rem-${s.id}"  onclick="removeFromWL('${s.id}')">✕ Remove</button>
+        </div>
+      </div>
+      <div class="stock-graph-panel" id="panel-${s.id}">
+        <div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">
+          ${s.name} — 7-Day Price History
+        </div>
+        <canvas id="chart-${s.id}" height="160"></canvas>
+      </div>`;
+    container.appendChild(wrap);
+  });
+}
+
+function refreshButtons() {
+  let gainers = 0, losers = 0;
+  stocks.forEach(s => { if(s.change>0) gainers++; if(s.change<0) losers++; });
+  document.getElementById('wlCount').textContent      = watchlist.length;
+  document.getElementById('gainersCount').textContent = gainers;
+  document.getElementById('losersCount').textContent  = losers;
+
+  stocks.forEach(s => {
+    const inWL = watchlist.includes(s.id);
+    document.getElementById('add-'+s.id).style.display = inWL ? 'none' : 'inline-block';
+    document.getElementById('rem-'+s.id).style.display = inWL ? 'inline-block' : 'none';
+  });
+  renderWatchlistTable();
+}
+
+// =========================================================
+// PER-STOCK CHART
+// =========================================================
+function togglePanel(id) {
+  openPanels[id] = !openPanels[id];
+  const panel = document.getElementById('panel-'+id);
+  const btn   = document.getElementById('chartbtn-'+id);
+  if (openPanels[id]) {
+    panel.classList.add('open');
+    btn.textContent = '📉 Hide';
+    btn.classList.add('chart-open');
+    buildStockChart(id);
+  } else {
+    panel.classList.remove('open');
+    btn.textContent = '📈 Chart';
+    btn.classList.remove('chart-open');
+  }
+}
+
+function buildStockChart(id) {
+  if (chartInstances[id]) return; // already rendered
+  const s   = stocks.find(x => x.id === id);
+  const ctx = document.getElementById('chart-'+id).getContext('2d');
+  const isDark = document.body.classList.contains('dark');
+  const gc = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+  const tc = isDark ? '#94a3b8' : '#64748b';
+
+  chartInstances[id] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: LABELS,
+      datasets: [{
+        label: s.name + ' (₹)',
+        data: s.history,
+        borderColor: s.color,
+        backgroundColor: s.color + '20',
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointBackgroundColor: s.color,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => ' ₹' + ctx.parsed.y.toLocaleString() }
+        }
+      },
+      scales: {
+        x: { ticks:{ color:tc, font:{family:'Nunito'} }, grid:{ color:gc } },
+        y: {
+          ticks:{ color:tc, font:{family:'Nunito'}, callback: v => '₹'+v.toLocaleString() },
+          grid:{ color:gc }
+        }
+      }
+    }
+  });
+}
+
+function updateChartTheme(chart) {
+  if (!chart) return;
+  const isDark = document.body.classList.contains('dark');
+  const gc = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+  const tc = isDark ? '#94a3b8' : '#64748b';
+  chart.options.scales.x.ticks.color = tc;
+  chart.options.scales.y.ticks.color = tc;
+  chart.options.scales.x.grid.color  = gc;
+  chart.options.scales.y.grid.color  = gc;
+  chart.update();
+}
+
+// =========================================================
+// WATCHLIST ACTIONS
+// =========================================================
+function addToWL(id) {
+  if (!watchlist.includes(id)) watchlist.push(id);
+  saveWL(); refreshButtons();
+}
+function removeFromWL(id) {
+  watchlist = watchlist.filter(x => x !== id);
+  saveWL(); refreshButtons();
+}
+
+function renderWatchlistTable() {
+  const sec = document.getElementById('watchlistSection');
+  if (watchlist.length === 0) {
+    sec.innerHTML = '<div class="empty-state"><div class="icon">⭐</div>No stocks added yet. Click "+ Watchlist" above.</div>';
+    return;
+  }
+  const rows = watchlist.map(id => {
+    const s = stocks.find(x => x.id === id);
+    if (!s) return '';
+    const chClass = s.change > 0 ? 'positive' : s.change < 0 ? 'negative' : '';
+    const chSign  = s.change > 0 ? '+' : '';
+    let reco, recoClass;
+    if (s.change > 0.5)       { reco = '✅ Buy';  recoClass = 'reco-buy';  }
+    else if (s.change < -0.5) { reco = '🔴 Sell'; recoClass = 'reco-sell'; }
+    else                       { reco = '🟡 Hold'; recoClass = 'reco-hold'; }
+    return `<tr>
+      <td><strong>${s.name}</strong></td>
+      <td>₹${s.price.toLocaleString()}</td>
+      <td class="${chClass}">${chSign}${s.change}%</td>
+      <td>${s.sector}</td>
+      <td><span class="reco-badge ${recoClass}">${reco}</span></td>
+      <td><button class="remove-btn" style="display:inline-block" onclick="removeFromWL('${s.id}')">✕ Remove</button></td>
+    </tr>`;
+  }).join('');
+  sec.innerHTML = `<table>
+    <tr><th>Name</th><th>Price</th><th>Change</th><th>Sector</th><th>Recommendation</th><th>Action</th></tr>
+    ${rows}
+  </table>`;
+}
+
+// =========================================================
+// INIT
+// =========================================================
+buildCards();
+refreshButtons();</script>
+<script src="common.js"></script>
+</body>
+</html>

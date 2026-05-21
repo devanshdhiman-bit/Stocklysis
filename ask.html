@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockLysis - Ask a Question</title>
+  <link rel="stylesheet" href="common.css"/>
+  <style>
+    .qa-card{background:var(--surface);padding:20px 24px;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:14px;transition:.25s}
+    .qa-card:hover{transform:translateY(-2px)}
+    .qa-question{font-size:15px;font-weight:700;margin-bottom:4px}
+    .qa-meta{font-size:12px;color:var(--text-muted);margin-bottom:6px}
+    .qa-answer{font-size:14px;color:var(--text-muted);line-height:1.7;padding:10px 14px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--primary)}
+    .tag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;background:var(--surface2);color:var(--primary);border:1px solid var(--border)}
+    .answer-box{margin-top:10px;display:flex;gap:8px;align-items:flex-start}
+    .answer-box textarea{flex:1;padding:9px 12px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);resize:vertical;min-height:60px;transition:.2s}
+    .answer-box textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,233,.15)}
+    .btn-answer{padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;transition:.2s;white-space:nowrap}
+    .btn-answer:hover{background:var(--primary-dark)}
+    .btn-edit{padding:4px 10px;background:var(--surface2);color:var(--text);border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;transition:.2s}
+    .btn-edit:hover{border-color:var(--primary);color:var(--primary)}
+  </style>
+</head>
+<body>
+<div class="navbar">
+  <a href="index.html" class="logo">📊 StockLysis</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="compare.html">Compare</a>
+    <a href="news.html">News</a>
+    <a href="watchlist.html">Watchlist</a>
+    <a href="beginner.html">Beginner Tips</a>
+    <a href="ask.html" class="active">Ask a Question</a>
+    <a href="about.html">About</a>
+  </nav>
+  <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <div id="authButtons"></div>
+  </div>
+</div>
+
+<div class="page">
+  <h2 class="page-title">❓ Ask a Question</h2>
+
+  <div class="form-card">
+    <h3 style="font-size:17px;font-weight:800;margin-bottom:16px;color:var(--primary);">Submit Your Question</h3>
+    <input type="text" id="qName" placeholder="Your name"/>
+    <input type="text" id="qTitle" placeholder="Question title (e.g. What is P/E ratio?)"/>
+    <textarea id="qBody" rows="3" placeholder="Describe your question in detail..."></textarea>
+    <select id="qCategory">
+      <option value="">Select category...</option>
+      <option>Basics</option>
+      <option>Technical Analysis</option>
+      <option>Fundamental Analysis</option>
+      <option>Market News</option>
+      <option>Other</option>
+    </select>
+    <button class="btn-primary" onclick="submitQuestion()">📨 Submit Question</button>
+  </div>
+
+  <h2 class="section-title">💬 All Questions</h2>
+
+  <div id="qaContainer"></div>
+</div>
+
+<footer>Have a question? Ask the community!</footer>
+
+<script>
+const defaultQA = [
+  { name:'Rahul', title:'What is a P/E ratio?', body:'How do I use the Price-to-Earnings ratio to evaluate a stock?', category:'Fundamental Analysis', date:'Apr 28, 2026',
+    answer:'The P/E ratio compares a company\'s share price to its earnings per share. A higher P/E suggests investors expect higher future growth. Compare it within the same sector for best results.' },
+  { name:'Priya', title:'When is the best time to buy stocks?', body:'Should I try to time the market or invest regularly?', category:'Basics', date:'Apr 27, 2026',
+    answer:'Timing the market consistently is very difficult. Most experts recommend "time in the market" over "timing the market" — investing regularly through SIPs tends to outperform lump-sum timing strategies.' },
+  { name:'Arjun', title:'What is a stop-loss order?', body:'How does a stop-loss protect my investment?', category:'Technical Analysis', date:'Apr 26, 2026',
+    answer:'A stop-loss is an order to automatically sell a stock when it falls to a certain price. It limits your downside by exiting a losing position before losses get too large.' },
+];
+
+let userQA = JSON.parse(localStorage.getItem('userQA')) || [];
+
+function submitQuestion(){
+  const name     = document.getElementById('qName').value.trim();
+  const title    = document.getElementById('qTitle').value.trim();
+  const body     = document.getElementById('qBody').value.trim();
+  const category = document.getElementById('qCategory').value;
+  if(!name || !title || !body || !category){ alert('Please fill in all fields.'); return; }
+  const now = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  userQA.unshift({ name, title, body, category, date:now, answer:null });
+  localStorage.setItem('userQA', JSON.stringify(userQA));
+  document.getElementById('qName').value='';
+  document.getElementById('qTitle').value='';
+  document.getElementById('qBody').value='';
+  document.getElementById('qCategory').value='';
+  render();
+  exportToExcel();
+}
+
+function deleteQ(idx){
+  userQA.splice(idx,1);
+  localStorage.setItem('userQA', JSON.stringify(userQA));
+  render();
+}
+
+function submitAnswer(type, idx){
+  const val = document.getElementById(`ans-${type}-${idx}`).value.trim();
+  if(!val){ alert('Please type an answer first.'); return; }
+  if(type === 'user'){
+    userQA[idx].answer = val;
+    localStorage.setItem('userQA', JSON.stringify(userQA));
+  } else {
+    defaultQA[idx].answer = val;
+  }
+  render();
+}
+
+function editAnswer(type, idx){
+  const current = type === 'user' ? userQA[idx].answer : defaultQA[idx].answer;
+  if(type === 'user'){
+    userQA[idx].answer = null;
+    localStorage.setItem('userQA', JSON.stringify(userQA));
+  } else {
+    defaultQA[idx].answer = null;
+  }
+  render();
+  // Pre-fill the textarea with existing answer for easy editing
+  const ta = document.getElementById(`ans-${type}-${idx}`);
+  if(ta){ ta.value = current; ta.focus(); }
+}
+
+function render(){
+  const c = document.getElementById('qaContainer');
+  const userCards = userQA.map((q,i) => cardHTML(q, 'user', i));
+  const defCards  = defaultQA.map((q,i) => cardHTML(q, 'def', i));
+  const all = [...userCards, ...defCards];
+  if(!all.length){ c.innerHTML='<div class="empty-state"><div class="icon">❓</div>No questions yet.</div>'; return; }
+  c.innerHTML = all.join('');
+}
+
+function cardHTML(q, type, i){
+  const answerSection = q.answer
+    ? `<div class="qa-answer">
+        💡 <strong>Answer:</strong> ${q.answer}
+        <button class="btn-edit" onclick="editAnswer('${type}',${i})" style="margin-left:10px;">✏️ Edit</button>
+       </div>`
+    : `<div class="answer-box">
+        <textarea id="ans-${type}-${i}" placeholder="Write your answer here..."></textarea>
+        <button class="btn-answer" onclick="submitAnswer('${type}',${i})">💬 Answer</button>
+       </div>`;
+
+  const deleteBtn = type === 'user'
+    ? `<button onclick="deleteQ(${i})" style="background:#fee2e2;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;color:#dc2626;font-weight:700;font-size:12px;flex-shrink:0;">✕</button>`
+    : '';
+
+  return `
+    <div class="qa-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div style="flex:1">
+          <div class="qa-question">❓ ${q.title}</div>
+          <div class="qa-meta">👤 ${q.name} &nbsp;•&nbsp; <span class="tag">${q.category}</span> &nbsp;•&nbsp; 🗓 ${q.date}</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">${q.body}</div>
+          ${answerSection}
+        </div>
+        ${deleteBtn}
+      </div>
+    </div>`;
+}
+
+function exportToExcel(){
+  const all = [...userQA, ...defaultQA];
+  if(!all.length){ alert('No questions to export.'); return; }
+  const rows = [['Name','Title','Question','Category','Date','Answer'],
+    ...all.map(q=>[q.name, q.title, q.body, q.category, q.date, q.answer||'Awaiting answer'])];
+  const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = Object.assign(document.createElement('a'),{
+    href: URL.createObjectURL(new Blob([csv],{type:'text/csv'})),
+    download:'StockLysis_Questions.csv'
+  });
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+render();
+</script>
+<script src="common.js"></script>
+</body>
+</html>

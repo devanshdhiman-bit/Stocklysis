@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockLysis - About</title>
+  <link rel="stylesheet" href="common.css"/>
+</head>
+<body>
+<div class="navbar">
+  <a href="index.html" class="logo">📊 StockLysis</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="compare.html">Compare</a>
+    <a href="news.html">News</a>
+    <a href="watchlist.html">Watchlist</a>
+    <a href="beginner.html">Beginner Tips</a>
+    <a href="ask.html">Ask a Question</a>
+    <a href="about.html" class="active">About</a>
+  </nav>
+      <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <div id="authButtons"></div>
+  </div>
+  </div>
+</div>
+
+<div class="page">
+  <h2 class="page-title">ℹ️ About StockLysis</h2>
+
+  <div class="about-card">
+    <h3 style="font-size:19px;font-weight:800;margin-bottom:12px;color:var(--primary);">What is StockLysis?</h3>
+    <p style="line-height:1.8;color:var(--text-muted);font-size:15px;">
+      <strong style="color:var(--text);">StockLysis</strong> is an educational stock market platform built to help beginners and intermediate investors
+      understand the Indian stock market better. From real-time-style dashboards to curated market news, watchlists,
+      stock comparisons, and beginner tips — everything is designed to be simple, intuitive, and visually engaging.
+    </p>
+    <p style="line-height:1.8;color:var(--text-muted);font-size:15px;margin-top:12px;">
+      Our goal is to <strong style="color:var(--text);">demystify investing</strong> for the everyday person. Whether you're tracking your first stock
+      or comparing big names like TCS vs INFY, StockLysis gives you the tools to make more informed decisions —
+      without overwhelming jargon.
+    </p>
+  </div>
+
+  <div class="about-card">
+    <h3 style="font-size:19px;font-weight:800;margin-bottom:12px;color:var(--primary);">✨ Key Features</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+      <div style="background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:22px;margin-bottom:6px;">📊</div>
+        <div style="font-weight:700;margin-bottom:4px;">Live Dashboard</div>
+        <div style="font-size:13px;color:var(--text-muted);">Track top stocks with price changes and visual charts.</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:22px;margin-bottom:6px;">⭐</div>
+        <div style="font-weight:700;margin-bottom:4px;">Watchlist</div>
+        <div style="font-size:13px;color:var(--text-muted);">Save stocks and get buy/sell/hold recommendations.</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:22px;margin-bottom:6px;">📰</div>
+        <div style="font-weight:700;margin-bottom:4px;">Market News</div>
+        <div style="font-size:13px;color:var(--text-muted);">Stay updated with curated news and like/dislike reactions.</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:22px;margin-bottom:6px;">💡</div>
+        <div style="font-weight:700;margin-bottom:4px;">Beginner Tips</div>
+        <div style="font-size:13px;color:var(--text-muted);">Learn the basics and add your own tips for others.</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:22px;margin-bottom:6px;">❓</div>
+        <div style="font-weight:700;margin-bottom:4px;">Ask Questions</div>
+        <div style="font-size:13px;color:var(--text-muted);">Submit questions, view all Q&amp;A, export to Excel.</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px;border:1px solid var(--border);">
+        <div style="font-size:22px;margin-bottom:6px;">🌙</div>
+        <div style="font-weight:700;margin-bottom:4px;">Dark Mode</div>
+        <div style="font-size:13px;color:var(--text-muted);">Switch between light and dark themes anytime.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title" style="margin-top:32px;">👥 Meet the Team</h2>
+  <p style="color:var(--text-muted);margin-bottom:20px;font-size:15px;">StockLysis was built as a collaborative student project by a passionate team of three.</p>
+
+  <div class="member-card">
+    <div class="member-avatar">G</div>
+    <div>
+      <div class="member-name">Gurmehtab</div>
+      <div class="member-role">HTML Developer</div>
+      <div class="member-desc">Responsible for building the structure of the website — creating forms, pages, and ensuring semantic HTML for accessibility and clarity.</div>
+    </div>
+  </div>
+
+  <div class="member-card">
+    <div class="member-avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">D</div>
+    <div>
+      <div class="member-name">Devansh</div>
+      <div class="member-role">CSS Designer</div>
+      <div class="member-desc">Designed the website's look and feel — including layout, colors, typography, animations, and interactive elements for a smooth user experience.</div>
+    </div>
+  </div>
+
+  <div class="member-card">
+    <div class="member-avatar" style="background:linear-gradient(135deg,#10b981,#0ea5e9);">A</div>
+    <div>
+      <div class="member-name">Ashutosh</div>
+      <div class="member-role">Research Analyst</div>
+      <div class="member-desc">Conducted research on stock market trends and user needs, providing insights that guided the website's content, features, and overall direction.</div>
+    </div>
+  </div>
+
+  <div class="about-card" style="margin-top:28px;text-align:center;">
+    <p style="font-size:14px;color:var(--text-muted);line-height:1.8;">
+      ⚠️ <strong>Disclaimer:</strong> StockLysis is built purely for <strong>educational purposes</strong>. The data shown is static/demo data and should not be used for real investment decisions. Always consult a SEBI-registered financial advisor before investing.
+    </p>
+  </div>
+</div>
+
+<footer>&copy; 2026 StockLysis — Built with ❤️ for learning.</footer>
+
+
+<script src="common.js"></script>
+</body>
+</html>

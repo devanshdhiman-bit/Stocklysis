@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockLysis - News</title>
+  <link rel="stylesheet" href="common.css"/>
+</head>
+<body>
+<div class="navbar">
+  <a href="index.html" class="logo">📊 StockLysis</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="compare.html">Compare</a>
+    <a href="news.html" class="active">News</a>
+    <a href="watchlist.html">Watchlist</a>
+    <a href="beginner.html">Beginner Tips</a>
+    <a href="ask.html">Ask a Question</a>
+    <a href="about.html">About</a>
+  </nav>
+  <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <div id="authButtons"></div>
+  </div>
+</div>
+
+<div class="page">
+  <h2 class="page-title">📰 Latest Market News</h2>
+  <div id="newsContainer"></div>
+</div>
+
+<footer>Market updates and news.</footer>
+
+<script>
+const newsData = [
+  { id:'n1', title:'Reliance Shares Rise 2%', meta:'Energy Sector • Apr 30, 2026',
+    desc:'Reliance Industries gained momentum after announcing major expansion plans into green energy. The stock crossed a key resistance level as institutional investors showed renewed interest.'},
+  { id:'n2', title:'TCS Wins Landmark US Contract', meta:'IT Sector • Apr 29, 2026',
+    desc:'TCS signed a multi-year digital transformation deal worth $500M with a leading US healthcare firm. Analysts expect this to boost revenue significantly in the coming quarters.'},
+  { id:'n3', title:'Banking Stocks Fall on Global Pressure', meta:'Banking Sector • Apr 29, 2026',
+    desc:'Banking stocks declined due to rising global interest rate concerns and weak cues from US markets. HDFC and ICICI were among the biggest losers in the session.'},
+  { id:'n4', title:'INFY Beats Quarterly Estimates', meta:'IT Sector • Apr 28, 2026',
+    desc:'Infosys reported earnings above analyst expectations, driven by strong deal wins in Europe. The management raised full-year guidance, sending the stock up in after-hours trading.'},
+  { id:'n5', title:'SEBI Tightens F&O Rules', meta:'Regulation • Apr 27, 2026',
+    desc:'The Securities and Exchange Board of India announced stricter rules for futures and options trading to curb retail investor losses. The new norms take effect from June 2026.'},
+];
+
+// Load reactions from localStorage
+let reactions = JSON.parse(localStorage.getItem('newsReactions')) || {};
+
+// For each news item, set random base counts ONCE (on first load), and track user vote
+newsData.forEach(n => {
+  if (!reactions[n.id]) {
+    reactions[n.id] = {
+      likes:    Math.floor(Math.random() * 891) + 10,  // random 10–900
+      dislikes: Math.floor(Math.random() * 291) + 5,   // random 5–295
+      vote: null,   // null | 'like' | 'dislike'
+      open: false
+    };
+  }
+  // Ensure vote field exists for older stored data
+  if (!('vote' in reactions[n.id])) reactions[n.id].vote = null;
+});
+
+function saveReactions() {
+  localStorage.setItem('newsReactions', JSON.stringify(reactions));
+}
+
+function like(id) {
+  const r = reactions[id];
+  if (r.vote === 'like') {
+    r.likes--;
+    r.vote = null;
+  } else {
+    if (r.vote === 'dislike') r.dislikes--;
+    r.likes++;
+    r.vote = 'like';
+  }
+  saveReactions();
+  updateButtons(id);
+}
+
+function dislike(id) {
+  const r = reactions[id];
+  if (r.vote === 'dislike') {
+    r.dislikes--;
+    r.vote = null;
+  } else {
+    if (r.vote === 'like') r.likes--;
+    r.dislikes++;
+    r.vote = 'dislike';
+  }
+  saveReactions();
+  updateButtons(id);
+}
+
+function updateButtons(id) {
+  const r = reactions[id];
+  const likeBtn    = document.getElementById('like-' + id);
+  const dislikeBtn = document.getElementById('dislike-' + id);
+
+  likeBtn.textContent    = '👍 ' + r.likes;
+  dislikeBtn.textContent = '👎 ' + r.dislikes;
+
+  likeBtn.classList.toggle('active-vote', r.vote === 'like');
+  dislikeBtn.classList.toggle('active-vote', r.vote === 'dislike');
+}
+
+function toggleDesc(id) {
+  reactions[id].open = !reactions[id].open;
+  saveReactions();
+  const desc = document.getElementById('desc-' + id);
+  const btn  = document.getElementById('readbtn-' + id);
+  if (reactions[id].open) {
+    desc.style.display = 'block';
+    btn.textContent = 'Show Less';
+  } else {
+    desc.style.display = 'none';
+    btn.textContent = 'Read More';
+  }
+}
+
+function render() {
+  const container = document.getElementById('newsContainer');
+  container.innerHTML = newsData.map(n => {
+    const r = reactions[n.id];
+    const descDisplay = r.open ? 'block' : 'none';
+    const btnText     = r.open ? 'Show Less' : 'Read More';
+    const likeActive  = r.vote === 'like'    ? ' active-vote' : '';
+    const dislikeActive = r.vote === 'dislike' ? ' active-vote' : '';
+    return `
+    <div class="news-card">
+      <div class="news-title">${n.title}</div>
+      <div class="news-meta">${n.meta}</div>
+      <div class="news-desc" id="desc-${n.id}" style="display:${descDisplay}">${n.desc}</div>
+      <div class="news-actions">
+        <button class="news-btn" id="readbtn-${n.id}" onclick="toggleDesc('${n.id}')">${btnText}</button>
+        <button class="like-btn${likeActive}" id="like-${n.id}" onclick="like('${n.id}')">👍 ${r.likes}</button>
+        <button class="dislike-btn${dislikeActive}" id="dislike-${n.id}" onclick="dislike('${n.id}')">👎 ${r.dislikes}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+render();
+</script>
+
+<style>
+  /* Highlight active vote button */
+  .active-vote {
+    outline: 2px solid currentColor;
+    opacity: 1 !important;
+    font-weight: bold;
+  }
+</style>
+
+<script src="common.js"></script>
+</body>
+</html>

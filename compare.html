@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockLysis - Compare</title>
+  <link rel="stylesheet" href="common.css"/>
+</head>
+<body>
+<div class="navbar">
+  <a href="index.html" class="logo">📊 StockLysis</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="compare.html" class="active">Compare</a>
+    <a href="news.html">News</a>
+    <a href="watchlist.html">Watchlist</a>
+    <a href="beginner.html">Beginner Tips</a>
+    <a href="ask.html">Ask a Question</a>
+    <a href="about.html">About</a>
+  </nav>
+      <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <div id="authButtons"></div>
+  </div>
+  </div>
+</div>
+
+<div class="page">
+  <h2 class="page-title">📊 Compare Companies</h2>
+
+  <table>
+    <tr>
+      <th>Feature</th>
+      <th>TCS</th>
+      <th>INFY</th>
+    </tr>
+    <tr>
+      <td><strong>Price</strong></td>
+      <td id="tcsPrice">₹3900</td>
+      <td id="infyPrice">₹1450</td>
+    </tr>
+    <tr>
+      <td><strong>Signal</strong></td>
+      <td id="tcsSignal">—</td>
+      <td id="infySignal">—</td>
+    </tr>
+    <tr>
+      <td><strong>Sector</strong></td>
+      <td>IT</td>
+      <td>IT</td>
+    </tr>
+    <tr>
+      <td><strong>Market Cap</strong></td>
+      <td>₹14L Cr</td>
+      <td>₹6L Cr</td>
+    </tr>
+  </table>
+
+  <div id="output" style="margin-top:18px; font-size:16px; font-weight:700; color:var(--primary);"></div>
+  <button id="updateBtn" onclick="updatePrices()">🔄 Update Prices</button>
+</div>
+
+<footer>Compare stocks performance.</footer>
+
+<script>const tcs  = { price: 3900, signal: 'Strong' };
+const infy = { price: 1450, signal: 'Careful' };
+
+function evalSignal(s){
+  return s==='Strong' ? '✅ Strong Buy' : s==='Careful' ? '⚠️ Proceed Carefully' : '❓ Unknown';
+}
+
+function updateUI(){
+  document.getElementById('tcsPrice').textContent  = '₹' + tcs.price;
+  document.getElementById('infyPrice').textContent = '₹' + infy.price;
+  document.getElementById('tcsSignal').textContent  = evalSignal(tcs.signal);
+  document.getElementById('infySignal').textContent = evalSignal(infy.signal);
+  document.getElementById('output').textContent =
+    tcs.price > infy.price ? '📈 TCS is priced higher currently.' : '💰 INFY is the cheaper option right now.';
+}
+
+function updatePrices(){
+  tcs.price  += Math.floor(Math.random() * 80) - 20;
+  infy.price += Math.floor(Math.random() * 50) - 10;
+  tcs.signal  = tcs.price > 3900 ? 'Strong' : 'Careful';
+  infy.signal = infy.price > 1450 ? 'Strong' : 'Careful';
+  updateUI();
+}
+
+updateUI();</script>
+<script src="common.js"></script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockLysis - Sign Up</title>
+  <link rel="stylesheet" href="common.css"/>
+</head>
+<body>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">📊 StockLysis</div>
+    <div class="auth-subtitle">Create your free account</div>
+
+    <style>
+      .field-wrap { margin-bottom: 4px; }
+      .err { color: #dc2626; font-size: 12px; font-weight: 600; margin-bottom: 8px; display: none; padding-left: 2px; }
+      .input-err { border-color: #dc2626 !important; background: #fff5f5 !important; }
+      .input-ok  { border-color: #16a34a !important; }
+      .strength-bar { height: 5px; border-radius: 4px; margin-bottom: 4px; transition: 0.3s; background: #e2e8f0; }
+      .strength-label { font-size: 11px; font-weight: 700; margin-bottom: 8px; }
+    </style>
+
+    <form id="signupForm" novalidate>
+
+      <div class="field-wrap">
+        <input id="name" type="text" placeholder="Full Name"/>
+        <div class="err" id="err-name"></div>
+      </div>
+
+      <div class="field-wrap">
+        <input id="username" type="text" placeholder="Username (letters, numbers, _)"/>
+        <div class="err" id="err-username"></div>
+      </div>
+
+      <div class="field-wrap">
+        <input id="email" type="email" placeholder="Email Address"/>
+        <div class="err" id="err-email"></div>
+      </div>
+
+      <div class="field-wrap">
+        <input id="pass1" type="password" placeholder="Password (min 6 characters)" oninput="checkStrength()"/>
+        <div class="strength-bar" id="strengthBar"></div>
+        <div class="strength-label" id="strengthLabel"></div>
+        <div class="err" id="err-pass1"></div>
+      </div>
+
+      <div class="field-wrap">
+        <input id="pass2" type="password" placeholder="Confirm Password" oninput="checkMatch()"/>
+        <div class="err" id="err-pass2"></div>
+      </div>
+
+      <button type="submit" class="btn-primary">🚀 Sign Up</button>
+    </form>
+
+    <div class="auth-link">Already have an account? <a href="login.html">Login</a></div>
+    <div style="text-align:center; margin-top:10px;">
+      <a href="index.html" class="btn-back">← Back to Home</a>
+    </div>
+  </div>
+</div>
+
+<script>
+if(localStorage.getItem('loggedInUser')) window.location.href = 'dashboard.html';
+
+function showErr(id, msg){
+  const el = document.getElementById('err-' + id);
+  const inp = document.getElementById(id);
+  el.textContent = msg; el.style.display = 'block';
+  inp.classList.add('input-err'); inp.classList.remove('input-ok');
+}
+function clearErr(id){
+  const el = document.getElementById('err-' + id);
+  const inp = document.getElementById(id);
+  el.style.display = 'none';
+  inp.classList.remove('input-err'); inp.classList.add('input-ok');
+}
+
+function checkStrength(){
+  const p = document.getElementById('pass1').value;
+  const bar = document.getElementById('strengthBar');
+  const lbl = document.getElementById('strengthLabel');
+  let score = 0;
+  if(p.length >= 6)  score++;
+  if(p.length >= 10) score++;
+  if(/[A-Z]/.test(p)) score++;
+  if(/[0-9]/.test(p)) score++;
+  if(/[^A-Za-z0-9]/.test(p)) score++;
+  const levels = [
+    { color:'#ef4444', label:'Very Weak',  width:'20%' },
+    { color:'#f97316', label:'Weak',       width:'40%' },
+    { color:'#eab308', label:'Fair',       width:'60%' },
+    { color:'#22c55e', label:'Strong',     width:'80%' },
+    { color:'#16a34a', label:'Very Strong',width:'100%'},
+  ];
+  const lvl = levels[Math.min(score, 4)];
+  bar.style.background = lvl.color;
+  bar.style.width = lvl.width;
+  bar.parentElement.style.background = '#e2e8f0';
+  lbl.textContent = p ? '🔐 ' + lvl.label : '';
+  lbl.style.color = lvl.color;
+  if(document.getElementById('pass2').value) checkMatch();
+}
+
+function checkMatch(){
+  const p1 = document.getElementById('pass1').value;
+  const p2 = document.getElementById('pass2').value;
+  if(!p2) return;
+  if(p1 === p2) clearErr('pass2');
+  else showErr('pass2', '❌ Passwords do not match');
+}
+
+document.getElementById('signupForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  let valid = true;
+
+  const name     = document.getElementById('name').value.trim();
+  const username = document.getElementById('username').value.trim();
+  const email    = document.getElementById('email').value.trim();
+  const pass1    = document.getElementById('pass1').value;
+  const pass2    = document.getElementById('pass2').value;
+
+  // Name
+  if(!name){
+    showErr('name', '❌ Full name is required'); valid = false;
+  } else if(name.length < 2){
+    showErr('name', '❌ Name must be at least 2 characters'); valid = false;
+  } else { clearErr('name'); }
+
+  // Username
+  if(!username){
+    showErr('username', '❌ Username is required'); valid = false;
+  } else if(!/^[a-zA-Z0-9_]{3,20}$/.test(username)){
+    showErr('username', '❌ 3–20 characters, only letters, numbers, _'); valid = false;
+  } else { clearErr('username'); }
+
+  // Email
+  if(!email){
+    showErr('email', '❌ Email is required'); valid = false;
+  } else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    showErr('email', '❌ Enter a valid email address'); valid = false;
+  } else {
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    if(users.find(u => u.email === email)){
+      showErr('email', '❌ This email is already registered'); valid = false;
+    } else { clearErr('email'); }
+  }
+
+  // Password
+  if(!pass1){
+    showErr('pass1', '❌ Password is required'); valid = false;
+  } else if(pass1.length < 6){
+    showErr('pass1', '❌ Password must be at least 6 characters'); valid = false;
+  } else { clearErr('pass1'); }
+
+  // Confirm password
+  if(!pass2){
+    showErr('pass2', '❌ Please confirm your password'); valid = false;
+  } else if(pass1 !== pass2){
+    showErr('pass2', '❌ Passwords do not match'); valid = false;
+  } else { clearErr('pass2'); }
+
+  if(!valid) return;
+
+  // All good — save and redirect
+  let users = JSON.parse(localStorage.getItem('users')) || [];
+  const user = { name, username, email, password: pass1 };
+  users.push(user);
+  localStorage.setItem('users', JSON.stringify(users));
+  localStorage.setItem('loggedInUser', JSON.stringify(user));
+  window.location.href = 'dashboard.html';
+});
+</script>
+<script src="common.js"></script>
+</body>
+</html>

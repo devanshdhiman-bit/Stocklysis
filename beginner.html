@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockLysis - Beginner Tips</title>
+  <link rel="stylesheet" href="common.css"/>
+</head>
+<body>
+<div class="navbar">
+  <a href="index.html" class="logo">📊 StockLysis</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="compare.html">Compare</a>
+    <a href="news.html">News</a>
+    <a href="watchlist.html">Watchlist</a>
+    <a href="beginner.html" class="active">Beginner Tips</a>
+    <a href="ask.html">Ask a Question</a>
+    <a href="about.html">About</a>
+  </nav>
+      <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <div id="authButtons"></div>
+  </div>
+  </div>
+</div>
+
+<div class="page">
+  <h2 class="page-title">💡 Stock Market Basics</h2>
+
+  <button class="btn-secondary" onclick="toggleForm()">➕ Add Your Own Tip</button>
+
+  <div id="formBox" style="display:none;" class="form-card">
+    <input type="text" id="tipTitle" placeholder="Tip title (e.g. What is P/E Ratio?)"/>
+    <textarea id="tipDesc" rows="3" placeholder="Describe the tip in simple words..."></textarea>
+    <button class="btn-primary" onclick="saveTip()">💾 Save Tip</button>
+  </div>
+
+  <div id="tipsContainer"></div>
+</div>
+
+<footer>Beginner education section.</footer>
+
+<script>const defaultTips = [
+  { icon:'📌', title:'What is a Stock?', desc:'A stock represents ownership in a company. When you buy a stock, you become a shareholder and own a small piece of that company.' },
+  { icon:'📊', title:'What is Market Cap?', desc:'Market capitalization is the total value of all a company\'s shares. It helps measure company size: small-cap, mid-cap, or large-cap.' },
+  { icon:'📈', title:'What is Trading Volume?', desc:'Trading volume is the number of shares traded during a day. Higher volume usually means stronger investor interest or a big news event.' },
+  { icon:'⚠️', title:'Risk Management', desc:'Never invest all your money in one stock. Diversify your portfolio across sectors to reduce the impact of any single loss.' },
+  { icon:'💹', title:'What is a Bull & Bear Market?', desc:'A bull market means prices are rising and investors are confident. A bear market means prices are falling and fear is dominant.' },
+];
+
+let userTips = JSON.parse(localStorage.getItem('userTips')) || [];
+
+function render(){
+  const container = document.getElementById('tipsContainer');
+  const allTips = [...defaultTips, ...userTips];
+  container.innerHTML = allTips.map((t, i) => `
+    <div class="tip-card">
+      <div class="tip-title"><span class="tip-icon">${t.icon || '💬'}</span>${t.title}
+        ${i >= defaultTips.length ? `<button onclick="deleteTip(${i - defaultTips.length})" style="float:right;background:#fee2e2;border:none;border-radius:6px;padding:3px 10px;cursor:pointer;color:#dc2626;font-weight:700;">✕</button>` : ''}
+      </div>
+      <div class="tip-desc">${t.desc}</div>
+    </div>`).join('');
+}
+
+function toggleForm(){
+  const box = document.getElementById('formBox');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveTip(){
+  const title = document.getElementById('tipTitle').value.trim();
+  const desc  = document.getElementById('tipDesc').value.trim();
+  if(!title || !desc) return alert('Please fill both fields.');
+  userTips.push({ icon:'💬', title, desc });
+  localStorage.setItem('userTips', JSON.stringify(userTips));
+  document.getElementById('tipTitle').value = '';
+  document.getElementById('tipDesc').value  = '';
+  document.getElementById('formBox').style.display = 'none';
+  render();
+}
+
+function deleteTip(idx){
+  userTips.splice(idx, 1);
+  localStorage.setItem('userTips', JSON.stringify(userTips));
+  render();
+}
+
+render();</script>
+<script src="common.js"></script>
+</body>
+</html>

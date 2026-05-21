@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StockLysis - Watchlist</title>
+  <link rel="stylesheet" href="common.css"/>
+</head>
+<body>
+<div class="navbar">
+  <a href="index.html" class="logo">📊 StockLysis</a>
+  <nav class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="compare.html">Compare</a>
+    <a href="news.html">News</a>
+    <a href="watchlist.html" class="active">Watchlist</a>
+    <a href="beginner.html">Beginner Tips</a>
+    <a href="ask.html">Ask a Question</a>
+    <a href="about.html">About</a>
+  </nav>
+      <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+    <div id="authButtons"></div>
+  </div>
+  </div>
+</div>
+
+<div class="page">
+  <h2 class="page-title">⭐ Your Watchlist</h2>
+  <div id="watchlistContent"></div>
+</div>
+
+<footer>Your saved stocks.</footer>
+
+<script>
+function toggleTheme(){
+  document.body.classList.toggle('dark');
+  localStorage.setItem('theme',document.body.classList.contains('dark')?'dark':'light');
+}
+
+const allStocks = [
+  {id:'TCS',   name:'TCS',      price:3900, change:+1.2},
+  {id:'INFY',  name:'INFY',     price:1450, change:-0.8},
+  {id:'RELI',  name:'RELIANCE', price:2800, change:0.0},
+  {id:'HDFC',  name:'HDFC',     price:2500, change:+0.5},
+  {id:'ICICI', name:'ICICI',    price:900,  change:-1.0},
+];
+
+let watchlist = JSON.parse(localStorage.getItem('watchlist2')) || [];
+
+function removeFromWL(id){
+  watchlist = watchlist.filter(x=>x!==id);
+  localStorage.setItem('watchlist2', JSON.stringify(watchlist));
+  render();
+}
+
+function render(){
+  const div = document.getElementById('watchlistContent');
+  if(watchlist.length===0){
+    div.innerHTML='<div class="empty-state"><div class="icon">⭐</div>No stocks in your watchlist.<br/>Go to Dashboard to add some!</div>';
+    return;
+  }
+  let rows = watchlist.map(id=>{
+    const s = allStocks.find(x=>x.id===id);
+    if(!s) return '';
+    const chClass = s.change>0?'positive':s.change<0?'negative':'';
+    const chSign  = s.change>0?'+':'';
+    let reco, recoClass;
+    if(s.change>0.5){ reco='✅ Buy'; recoClass='reco-buy'; }
+    else if(s.change<-0.5){ reco='🔴 Sell'; recoClass='reco-sell'; }
+    else { reco='🟡 Hold'; recoClass='reco-hold'; }
+    return `<tr>
+      <td><strong>${s.name}</strong></td>
+      <td>₹${s.price}</td>
+      <td class="${chClass}">${chSign}${s.change}%</td>
+      <td><span class="reco-badge ${recoClass}">${reco}</span></td>
+      <td><button class="remove-btn" style="display:inline-block" onclick="removeFromWL('${s.id}')">✕ Remove</button></td>
+    </tr>`;
+  }).join('');
+  div.innerHTML = `<table>
+    <tr><th>Name</th><th>Price</th><th>Change</th><th>Recommendation</th><th>Action</th></tr>
+    ${rows}
+  </table>`;
+}
+render();</script>
+<script src="common.js"></script>
+</body>
+</html>
